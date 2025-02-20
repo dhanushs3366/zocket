@@ -1,0 +1,7 @@
+[build]
+    cmd="go build -o ./build/main main.go"
+    bin="./build/main"
+    include_ext=["go"]
+    run_after_build="chmod +x ./build/main"
+[log]
+    level="info"
