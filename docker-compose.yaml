@@ -9,8 +9,8 @@ services:
       - DB_HOST=postgres
       - DB_PORT=5432
       - DB_USER=munke
-      - DB_PASSWORD=appointy
-      - DB_NAME=appointy
+      - DB_PASSWORD=zocket
+      - DB_NAME=zocket
     depends_on:
       - postgres
   
