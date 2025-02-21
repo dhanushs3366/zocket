@@ -64,32 +64,41 @@ func GenerateJWTToken(user *models.User) (string, error) {
 }
 
 // a middlerware to validate the user
-func ValidateJWT(c *fiber.Ctx) error {
-	JWT_SECRET := []byte(os.Getenv("JWT_SECRET"))
-	cookie := c.Cookies("auth_token")
+func ValidateJWT(store *Store) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		JWT_SECRET := []byte(os.Getenv("JWT_SECRET"))
+		cookie := c.Cookies("auth_token")
 
-	if cookie == "" {
-		return c.Status(http.StatusUnauthorized).JSON(fiber.Map{"error": "missing auth token"})
-	}
-
-	claims := &UserClaims{}
-	token, err := jwt.ParseWithClaims(cookie, claims, func(t *jwt.Token) (interface{}, error) {
-		return JWT_SECRET, nil
-	})
-
-	if err != nil {
-		status := http.StatusBadRequest
-		if errors.Is(err, jwt.ErrSignatureInvalid) {
-			status = http.StatusUnauthorized
+		if cookie == "" {
+			return c.Status(http.StatusUnauthorized).JSON(fiber.Map{"error": "missing auth token"})
 		}
-		return c.Status(status).JSON(fiber.Map{"error": err.Error()})
-	}
 
-	if !token.Valid {
-		return c.Status(http.StatusUnauthorized).JSON(fiber.Map{"error": "user unauthorized"})
-	}
+		claims := &UserClaims{}
+		token, err := jwt.ParseWithClaims(cookie, claims, func(t *jwt.Token) (interface{}, error) {
+			return JWT_SECRET, nil
+		})
 
-	return c.Next()
+		if err != nil {
+			status := http.StatusBadRequest
+			if errors.Is(err, jwt.ErrSignatureInvalid) {
+				status = http.StatusUnauthorized
+			}
+			return c.Status(status).JSON(fiber.Map{"error": err.Error()})
+		}
+
+		if !token.Valid {
+			return c.Status(http.StatusUnauthorized).JSON(fiber.Map{"error": "user unauthorized"})
+		}
+
+		user, err := store.GetUserByUsername(claims.Username)
+		if err != nil || user == nil {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "user not found"})
+		}
+
+		c.Locals("user", user)
+
+		return c.Next()
+	}
 }
 
 func GetUserIDFromToken(c *fiber.Ctx) (uint, error) {

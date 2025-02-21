@@ -34,16 +34,20 @@ func Init() (*Handler, error) {
 	h.router.Use(encryptcookie.New(encryptcookie.Config{
 		Key: os.Getenv("COOKIE_SECRET"),
 	}))
-	userGroup.Use(services.ValidateJWT)
+	userGroup.Use(services.ValidateJWT(h.store))
 
 	// generic reqs
 	h.router.Post("/register", h.register)
 	h.router.Get("/login", h.login)
 
 	// user reqs
-	userGroup.Get("/", func(c *fiber.Ctx) error {
-		return c.SendString("value=" + c.Cookies("auth_token"))
-	})
+	userGroup.Post("/tasks", h.createTask)
+	userGroup.Get("/tasks/:id", h.GetTask)
+	userGroup.Get("/tasks", h.GetAllTasks)
+	userGroup.Patch("/tasks", h.UpdateTask)
+	userGroup.Delete("/tasks", h.DeleteTask)
+
+	// @TODO: add a feature for group collaboration where a user can add other users to their tasks
 
 	return &h, nil
 }

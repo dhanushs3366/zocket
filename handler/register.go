@@ -62,10 +62,17 @@ func (h *Handler) login(c *fiber.Ctx) error {
 		})
 	}
 
+	if dbUser == nil {
+		return c.Status(http.StatusUnauthorized).JSON(fiber.Map{
+			"success": false,
+			"err":     "invalid email or password",
+		})
+	}
+
 	if !services.ComparePassword(dbUser.Password, user.Password) {
 		return c.Status(http.StatusUnauthorized).JSON(fiber.Map{
 			"success": false,
-			"err":     err.Error(),
+			"err":     "invalid email or password",
 		})
 	}
 
@@ -80,6 +87,7 @@ func (h *Handler) login(c *fiber.Ctx) error {
 		})
 	}
 
+	c.Locals("user", dbUser)
 	c.Cookie(&fiber.Cookie{
 		Name:  "auth_token",
 		Value: jwtToken,

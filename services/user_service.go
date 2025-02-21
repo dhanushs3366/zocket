@@ -18,6 +18,16 @@ func (s *Store) RegisterUser(user *models.User) error {
 	return nil
 }
 
+func (s *Store) GetUserByID(ID uint) (*models.User, error) {
+	user := new(models.User)
+
+	if err := s.db.First(&user, "id=?", ID).Error; err != nil {
+		log.Println("User not found")
+		return nil, err
+	}
+	return user, nil
+}
+
 func (s *Store) GetUserByUsername(name string) (*models.User, error) {
 	var user models.User
 	result := s.db.First(&user, "name = ?", name)
