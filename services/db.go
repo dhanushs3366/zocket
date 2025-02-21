@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/dhanushs3366/zocket/models"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -40,7 +41,15 @@ func Init() (*Store, error) {
 		return nil, err
 	}
 	log.Printf("connected to db successfully")
-	return &Store{db: db}, nil
+
+	store := Store{db: db}
+
+	if err := store.migrate(); err != nil {
+		log.Printf("couldnt populate tables %s", err.Error())
+		return nil, err
+	}
+	log.Printf("Migration successfull")
+	return &store, nil
 }
 
 func (s *Store) Close() error {
@@ -52,4 +61,11 @@ func (s *Store) Close() error {
 	}
 
 	return sqlDB.Close()
+}
+
+func (s *Store) migrate() error {
+	return s.db.AutoMigrate(
+		&models.User{},
+		&models.Task{},
+	)
 }
