@@ -19,8 +19,8 @@ services:
     restart: always
     environment:
       POSTGRES_USER: munke
-      POSTGRES_PASSWORD: appointy
-      POSTGRES_DB: appointy
+      POSTGRES_PASSWORD: zocket
+      POSTGRES_DB: zocket
     volumes:
       - postgres-data:/var/lib/postgresql/data
     ports:
